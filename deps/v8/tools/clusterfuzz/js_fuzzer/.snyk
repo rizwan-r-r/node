@@ -1,0 +1,60 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - '@babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/types > lodash'
+    - '@babel/generator > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/generator > lodash'
+    - '@babel/traverse > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/traverse > lodash'
+    - '@babel/generator > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/generator > @babel/types > lodash'
+    - '@babel/template > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/template > @babel/types > lodash'
+    - '@babel/traverse > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/traverse > @babel/types > lodash'
+    - '@babel/traverse > @babel/generator > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/traverse > @babel/generator > lodash'
+    - '@babel/traverse > @babel/generator > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/traverse > @babel/generator > @babel/types > lodash'
+    - '@babel/traverse > @babel/helper-function-name > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: '@babel/traverse > @babel/helper-function-name > @babel/types > lodash'
+    - '@babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: >-
+          @babel/traverse > @babel/helper-split-export-declaration >
+          @babel/types > lodash
+    - '@babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: >-
+          @babel/traverse > @babel/helper-function-name > @babel/template >
+          @babel/types > lodash
+    - '@babel/traverse > @babel/helper-function-name > @babel/helper-get-function-arity > @babel/types > lodash':
+        patched: '2024-03-09T18:02:00.169Z'
+        id: SNYK-JS-LODASH-567746
+        path: >-
+          @babel/traverse > @babel/helper-function-name >
+          @babel/helper-get-function-arity > @babel/types > lodash
