@@ -77,7 +77,7 @@
     "json-parse-even-better-errors": "^3.0.0",
     "libnpmaccess": "^7.0.2",
     "libnpmdiff": "^5.0.17",
-    "libnpmexec": "^5.0.17",
+    "libnpmexec": "^7.0.7",
     "libnpmfund": "^4.0.17",
     "libnpmhook": "^9.0.3",
     "libnpmorg": "^5.0.4",
