@@ -11,7 +11,7 @@
     "remark-stringify": "^10.0.2",
     "to-vfile": "^7.2.4",
     "unified": "^10.1.2",
-    "vfile-reporter": "^7.0.5"
+    "vfile-reporter": "^8.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.1.0",
