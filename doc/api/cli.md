@@ -2011,7 +2011,9 @@ concurrently. The default value is `os.availableParallelism() - 1`.
 ### `--test-force-exit`
 
 <!-- YAML
-added: v22.0.0
+added:
+  - v22.0.0
+  - v20.14.0
 -->
 
 Configures the test runner to exit the process once all known tests have
@@ -2870,6 +2872,13 @@ equivalent to using the `--redirect-warnings=file` command-line flag.
 added:
  - v13.0.0
  - v12.16.0
+changes:
+  - version:
+     - REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/52905
+    description:
+      Remove the possibility to use this env var with
+      kDisableNodeOptionsEnv for embedders.
 -->
 
 Path to a Node.js module which will be loaded in place of the built-in REPL.

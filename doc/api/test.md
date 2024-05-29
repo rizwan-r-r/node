@@ -1186,7 +1186,9 @@ added:
   - v18.9.0
   - v16.19.0
 changes:
-  - version: v22.0.0
+  - version:
+    - v22.0.0
+    - v20.14.0
     pr-url: https://github.com/nodejs/node/pull/52038
     description: Added the `forceExit` option.
   - version:
@@ -2234,10 +2236,10 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   const nineSecs = 9000;
   setTimeout(fn, nineSecs);
 
-  const twoSeconds = 3000;
-  context.mock.timers.tick(twoSeconds);
-  context.mock.timers.tick(twoSeconds);
-  context.mock.timers.tick(twoSeconds);
+  const threeSeconds = 3000;
+  context.mock.timers.tick(threeSeconds);
+  context.mock.timers.tick(threeSeconds);
+  context.mock.timers.tick(threeSeconds);
 
   assert.strictEqual(fn.mock.callCount(), 1);
 });
@@ -2253,10 +2255,10 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   const nineSecs = 9000;
   setTimeout(fn, nineSecs);
 
-  const twoSeconds = 3000;
-  context.mock.timers.tick(twoSeconds);
-  context.mock.timers.tick(twoSeconds);
-  context.mock.timers.tick(twoSeconds);
+  const threeSeconds = 3000;
+  context.mock.timers.tick(threeSeconds);
+  context.mock.timers.tick(threeSeconds);
+  context.mock.timers.tick(threeSeconds);
 
   assert.strictEqual(fn.mock.callCount(), 1);
 });
@@ -2306,8 +2308,8 @@ test('mocks setTimeout to be executed synchronously without having to actually w
 
 #### Using clear functions
 
-As mentioned, all clear functions from timers (`clearTimeout` and `clearInterval`)
-are implicity mocked. Take a look at this example using `setTimeout`:
+As mentioned, all clear functions from timers (`clearTimeout`, `clearInterval`,and
+`clearImmediate`) are implicitly mocked. Take a look at this example using `setTimeout`:
 
 ```mjs
 import assert from 'node:assert';
@@ -2320,7 +2322,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   context.mock.timers.enable({ apis: ['setTimeout'] });
   const id = setTimeout(fn, 9999);
 
-  // Implicity mocked as well
+  // Implicitly mocked as well
   clearTimeout(id);
   context.mock.timers.tick(9999);
 
@@ -2340,7 +2342,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   context.mock.timers.enable({ apis: ['setTimeout'] });
   const id = setTimeout(fn, 9999);
 
-  // Implicity mocked as well
+  // Implicitly mocked as well
   clearTimeout(id);
   context.mock.timers.tick(9999);
 
@@ -2862,11 +2864,7 @@ The corresponding execution ordered event is `'test:dequeue'`.
 ### Event: `'test:stderr'`
 
 * `data` {Object}
-  * `column` {number|undefined} The column number where the test is defined, or
-    `undefined` if the test was run through the REPL.
   * `file` {string} The path of the test file.
-  * `line` {number|undefined} The line number where the test is defined, or
-    `undefined` if the test was run through the REPL.
   * `message` {string} The message written to `stderr`.
 
 Emitted when a running test writes to `stderr`.
@@ -2877,11 +2875,7 @@ defined.
 ### Event: `'test:stdout'`
 
 * `data` {Object}
-  * `column` {number|undefined} The column number where the test is defined, or
-    `undefined` if the test was run through the REPL.
   * `file` {string} The path of the test file.
-  * `line` {number|undefined} The line number where the test is defined, or
-    `undefined` if the test was run through the REPL.
   * `message` {string} The message written to `stdout`.
 
 Emitted when a running test writes to `stdout`.
@@ -3081,7 +3075,7 @@ expected count, the test will fail.
 test('top level test', (t) => {
   t.plan(2);
   t.assert.ok('some relevant assertion here');
-  t.subtest('subtest', () => {});
+  t.test('subtest', () => {});
 });
 ```
 
