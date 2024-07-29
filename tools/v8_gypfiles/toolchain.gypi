@@ -550,14 +550,6 @@
           'CharacterSet': '1',
         },
       }],
-      ['OS=="win" and v8_target_arch=="ia32"', {
-        'msvs_settings': {
-          'VCCLCompilerTool': {
-            # Ensure no surprising artifacts from 80bit double math with x86.
-            'AdditionalOptions': ['/arch:SSE2'],
-          },
-        },
-      }],
       ['OS=="win" and v8_enable_prof==1', {
         'msvs_settings': {
           'VCLinkerTool': {
@@ -711,13 +703,7 @@
     'configurations': {
       'Debug': {
         'defines': [
-          'ENABLE_DISASSEMBLER',
-          'V8_ENABLE_CHECKS',
-          'OBJECT_PRINT',
           'DEBUG',
-          'V8_TRACE_MAPS',
-          'V8_ENABLE_ALLOCATION_TIMEOUT',
-          'V8_ENABLE_FORCE_SLOW_PATH',
         ],
         'conditions': [
           ['OS=="linux" and v8_enable_backtrace==1', {
@@ -962,13 +948,5 @@
       4724,  # https://crbug.com/v8/7771
       4800,  # Forcing value to bool.
     ],
-    # Relevant only for x86.
-    # Refs: https://github.com/nodejs/node/pull/25852
-    # Refs: https://docs.microsoft.com/en-us/cpp/build/reference/safeseh-image-has-safe-exception-handlers
-    'msvs_settings': {
-      'VCLinkerTool': {
-        'ImageHasSafeExceptionHandlers': 'false',
-      },
-    },
   },  # target_defaults
 }

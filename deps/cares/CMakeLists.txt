@@ -12,10 +12,10 @@ INCLUDE (CheckCSourceCompiles)
 INCLUDE (CheckStructHasMember)
 INCLUDE (CheckLibraryExists)
 
-PROJECT (c-ares LANGUAGES C VERSION "1.28.1" )
+PROJECT (c-ares LANGUAGES C VERSION "1.32.3" )
 
 # Set this version before release
-SET (CARES_VERSION "1.28.1")
+SET (CARES_VERSION "${PROJECT_VERSION}")
 
 INCLUDE (GNUInstallDirs) # include this *AFTER* PROJECT(), otherwise paths are wrong.
 
@@ -30,7 +30,7 @@ INCLUDE (GNUInstallDirs) # include this *AFTER* PROJECT(), otherwise paths are w
 # For example, a version of 4:0:2 would generate output such as:
 #    libname.so   -> libname.so.2
 #    libname.so.2 -> libname.so.2.2.0
-SET (CARES_LIB_VERSIONINFO "15:1:13")
+SET (CARES_LIB_VERSIONINFO "19:3:17")
 
 
 OPTION (CARES_STATIC        "Build as a static library"                                             OFF)
@@ -62,8 +62,8 @@ ENDIF ()
 
 INCLUDE (EnableWarnings)
 
-# allow linking against the static runtime library in msvc
 IF (MSVC)
+	# allow linking against the static runtime library in msvc
 	OPTION (CARES_MSVC_STATIC_RUNTIME "Link against the static runtime library" OFF)
 	IF (CARES_MSVC_STATIC_RUNTIME)
 		# CMAKE_CONFIGURATION_TYPES is empty on non-IDE generators (Ninja, NMake)
@@ -172,7 +172,7 @@ return 0;
 	MACOS_V1012)
 ENDIF ()
 
-IF ((IOS OR APPLE OR ZOS) AND HAVE_LIBRESOLV)
+IF (ZOS AND HAVE_LIBRESOLV)
 	SET (CARES_USE_LIBRESOLV 1)
 ENDIF()
 
@@ -227,7 +227,6 @@ CHECK_INCLUDE_FILES (sys/select.h          HAVE_SYS_SELECT_H)
 CHECK_INCLUDE_FILES (sys/stat.h            HAVE_SYS_STAT_H)
 CHECK_INCLUDE_FILES (sys/time.h            HAVE_SYS_TIME_H)
 CHECK_INCLUDE_FILES (sys/uio.h             HAVE_SYS_UIO_H)
-CHECK_INCLUDE_FILES (sys/random.h          HAVE_SYS_RANDOM_H)
 CHECK_INCLUDE_FILES (sys/event.h           HAVE_SYS_EVENT_H)
 CHECK_INCLUDE_FILES (sys/epoll.h           HAVE_SYS_EPOLL_H)
 CHECK_INCLUDE_FILES (ifaddrs.h             HAVE_IFADDRS_H)
@@ -341,7 +340,6 @@ CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_SOCKIO_H	sys/sockio.h)
 CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_TIME_H     sys/time.h)
 CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_STAT_H     sys/stat.h)
 CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_UIO_H      sys/uio.h)
-CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_RANDOM_H   sys/random.h)
 CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_EVENT_H    sys/event.h)
 CARES_EXTRAINCLUDE_IFSET (HAVE_SYS_EPOLL_H    sys/epoll.h)
 CARES_EXTRAINCLUDE_IFSET (HAVE_TIME_H         time.h)
@@ -566,7 +564,7 @@ SET (RECVFROM_TYPE_ARG5 "struct sockaddr *")
 SET (RECV_TYPE_ARG4 int)
 SET (GETNAMEINFO_TYPE_ARG1 "struct sockaddr *")
 SET (GETNAMEINFO_TYPE_ARG7 int)
-SET (SEND_TYPE_ARG2 "void *")
+SET (SEND_TYPE_ARG2 "const void *")
 SET (SEND_TYPE_ARG4 int)
 ################################################################################
 
@@ -664,6 +662,9 @@ IF (HAVE_SYS_TYPES_H)
 ENDIF ()
 IF (HAVE_SYS_SOCKET_H)
 	SET (CARES_HAVE_SYS_SOCKET_H 1)
+ENDIF()
+IF (HAVE_SYS_SELECT_H)
+	SET (CARES_HAVE_SYS_SELECT_H 1)
 ENDIF()
 IF (HAVE_WS2TCPIP_H)
 	SET (CARES_HAVE_WS2TCPIP_H 1)

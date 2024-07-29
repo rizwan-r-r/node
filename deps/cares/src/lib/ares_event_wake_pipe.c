@@ -23,8 +23,6 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "ares_setup.h"
-#include "ares.h"
 #include "ares_private.h"
 #include "ares_event.h"
 #ifdef HAVE_UNISTD_H
@@ -60,7 +58,7 @@ static ares_pipeevent_t *ares_pipeevent_init(void)
 {
   ares_pipeevent_t *p = ares_malloc_zero(sizeof(*p));
   if (p == NULL) {
-    return NULL;
+    return NULL; /* LCOV_EXCL_LINE: OutOfMemory */
   }
 
   p->filedes[0] = -1;
@@ -68,8 +66,8 @@ static ares_pipeevent_t *ares_pipeevent_init(void)
 
 #  ifdef HAVE_PIPE2
   if (pipe2(p->filedes, O_NONBLOCK | O_CLOEXEC) != 0) {
-    ares_pipeevent_destroy(p);
-    return NULL;
+    ares_pipeevent_destroy(p); /* LCOV_EXCL_LINE: UntestablePath */
+    return NULL;               /* LCOV_EXCL_LINE: UntestablePath */
   }
 #  else
   if (pipe(p->filedes) != 0) {
@@ -113,7 +111,7 @@ static void ares_pipeevent_signal(const ares_event_t *e)
   const ares_pipeevent_t *p;
 
   if (e == NULL || e->data == NULL) {
-    return;
+    return; /* LCOV_EXCL_LINE: DefensiveCoding */
   }
 
   p = e->data;
@@ -131,7 +129,7 @@ static void ares_pipeevent_cb(ares_event_thread_t *e, ares_socket_t fd,
   (void)flags;
 
   if (data == NULL) {
-    return;
+    return; /* LCOV_EXCL_LINE: DefensiveCoding */
   }
 
   p = data;
@@ -156,8 +154,8 @@ ares_event_t *ares_pipeevent_create(ares_event_thread_t *e)
                              p->filedes[0], p, ares_pipeevent_destroy_cb,
                              ares_pipeevent_signal);
   if (status != ARES_SUCCESS) {
-    ares_pipeevent_destroy(p);
-    return NULL;
+    ares_pipeevent_destroy(p); /* LCOV_EXCL_LINE: DefensiveCoding */
+    return NULL;               /* LCOV_EXCL_LINE: DefensiveCoding */
   }
 
   return event;

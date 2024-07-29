@@ -23,8 +23,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "ares_setup.h"
-
+#include "ares_private.h"
 
 #ifdef USE_WINSOCK
 #  include <winsock2.h>
@@ -55,9 +54,10 @@
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
 #endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
 
-#include "ares.h"
-#include "ares_private.h"
 
 static ares_status_t ares__iface_ips_enumerate(ares__iface_ips_t *ips,
                                                const char        *name);
@@ -81,15 +81,15 @@ static ares__iface_ips_t *ares__iface_ips_alloc(ares__iface_ip_flags_t flags)
 {
   ares__iface_ips_t *ips = ares_malloc_zero(sizeof(*ips));
   if (ips == NULL) {
-    return NULL;
+    return NULL; /* LCOV_EXCL_LINE: OutOfMemory */
   }
 
   /* Prealloc 4 entries */
   ips->alloc_size = 4;
   ips->ips        = ares_malloc_zero(ips->alloc_size * sizeof(*ips->ips));
   if (ips->ips == NULL) {
-    ares_free(ips);
-    return NULL;
+    ares_free(ips); /* LCOV_EXCL_LINE: OutOfMemory */
+    return NULL;    /* LCOV_EXCL_LINE: OutOfMemory */
   }
   ips->enum_flags = flags;
   return ips;
@@ -98,7 +98,7 @@ static ares__iface_ips_t *ares__iface_ips_alloc(ares__iface_ip_flags_t flags)
 static void ares__iface_ip_destroy(ares__iface_ip_t *ip)
 {
   if (ip == NULL) {
-    return;
+    return; /* LCOV_EXCL_LINE: DefensiveCoding */
   }
   ares_free(ip->name);
   memset(ip, 0, sizeof(*ip));
@@ -130,14 +130,16 @@ ares_status_t ares__iface_ips(ares__iface_ips_t    **ips,
 
   *ips = ares__iface_ips_alloc(flags);
   if (*ips == NULL) {
-    return ARES_ENOMEM;
+    return ARES_ENOMEM; /* LCOV_EXCL_LINE: OutOfMemory */
   }
 
   status = ares__iface_ips_enumerate(*ips, name);
   if (status != ARES_SUCCESS) {
+    /* LCOV_EXCL_START: UntestablePath */
     ares__iface_ips_destroy(*ips);
     *ips = NULL;
     return status;
+    /* LCOV_EXCL_STOP */
   }
 
   return ARES_SUCCESS;
@@ -151,7 +153,7 @@ static ares_status_t
   size_t idx;
 
   if (ips == NULL || name == NULL || addr == NULL) {
-    return ARES_EFORMERR;
+    return ARES_EFORMERR; /* LCOV_EXCL_LINE: DefensiveCoding */
   }
 
   /* Don't want loopback */
@@ -204,7 +206,7 @@ static ares_status_t
     temp = ares_realloc_zero(ips->ips, ips->alloc_size * sizeof(*ips->ips),
                              alloc_size * sizeof(*ips->ips));
     if (temp == NULL) {
-      return ARES_ENOMEM;
+      return ARES_ENOMEM; /* LCOV_EXCL_LINE: OutOfMemory */
     }
     ips->ips        = temp;
     ips->alloc_size = alloc_size;
@@ -213,13 +215,15 @@ static ares_status_t
   /* Add */
   idx = ips->cnt++;
 
-  ips->ips[idx].flags    = flags;
-  ips->ips[idx].netmask  = netmask;
-  ips->ips[idx].ll_scope = ll_scope;
+  ips->ips[idx].flags   = flags;
+  ips->ips[idx].netmask = netmask;
+  if (flags & ARES_IFACE_IP_LINKLOCAL) {
+    ips->ips[idx].ll_scope = ll_scope;
+  }
   memcpy(&ips->ips[idx].addr, addr, sizeof(*addr));
   ips->ips[idx].name = ares_strdup(name);
   if (ips->ips[idx].name == NULL) {
-    return ARES_ENOMEM;
+    return ARES_ENOMEM; /* LCOV_EXCL_LINE: OutOfMemory */
   }
 
   return ARES_SUCCESS;
@@ -490,7 +494,7 @@ static ares_status_t ares__iface_ips_enumerate(ares__iface_ips_t *ips,
     }
 
     /* Name mismatch */
-    if (strcasecmp(ifa->ifa_name, name) != 0) {
+    if (name != NULL && strcasecmp(ifa->ifa_name, name) != 0) {
       continue;
     }
 
@@ -522,12 +526,19 @@ static ares_status_t ares__iface_ips_enumerate(ares__iface_ips_t *ips,
 unsigned int ares__if_nametoindex(const char *name)
 {
 #ifdef HAVE_IF_NAMETOINDEX
+  if (name == NULL) {
+    return 0;
+  }
   return if_nametoindex(name);
 #else
   ares_status_t      status;
   ares__iface_ips_t *ips = NULL;
   size_t             i;
   unsigned int       index = 0;
+
+  if (name == NULL) {
+    return 0;
+  }
 
   status =
     ares__iface_ips(&ips, ARES_IFACE_IP_V6 | ARES_IFACE_IP_LINKLOCAL, name);
@@ -562,7 +573,7 @@ const char *ares__if_indextoname(unsigned int index, char *name,
   size_t             i;
   const char        *ptr = NULL;
 
-  if (name_len < IF_NAMESIZE) {
+  if (name == NULL || name_len < IF_NAMESIZE) {
     goto done;
   }
 

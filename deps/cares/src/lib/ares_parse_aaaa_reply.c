@@ -26,7 +26,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "ares_setup.h"
+#include "ares_private.h"
 
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
@@ -38,8 +38,6 @@
 #  include <arpa/inet.h>
 #endif
 
-#include "ares_nameser.h"
-
 #ifdef HAVE_STRINGS_H
 #  include <strings.h>
 #endif
@@ -48,10 +46,7 @@
 #  include <limits.h>
 #endif
 
-#include "ares.h"
-#include "ares_dns.h"
 #include "ares_inet_net_pton.h"
-#include "ares_private.h"
 
 int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
                           struct hostent **host, struct ares_addr6ttl *addrttls,
@@ -87,7 +82,7 @@ int ares_parse_aaaa_reply(const unsigned char *abuf, int alen,
   if (host != NULL) {
     status = ares__addrinfo2hostent(&ai, AF_INET6, host);
     if (status != ARES_SUCCESS && status != ARES_ENODATA) {
-      goto fail;
+      goto fail; /* LCOV_EXCL_LINE: DefensiveCoding */
     }
   }
 

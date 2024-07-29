@@ -23,8 +23,6 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "ares_setup.h"
-#include "ares.h"
 #include "ares_private.h"
 #include "ares__htable.h"
 #include "ares__htable_szvp.h"
@@ -123,7 +121,7 @@ ares_bool_t ares__htable_szvp_insert(ares__htable_szvp_t *htable, size_t key,
 
   bucket = ares_malloc(sizeof(*bucket));
   if (bucket == NULL) {
-    goto fail;
+    goto fail; /* LCOV_EXCL_LINE: OutOfMemory */
   }
 
   bucket->parent = htable;
@@ -131,14 +129,14 @@ ares_bool_t ares__htable_szvp_insert(ares__htable_szvp_t *htable, size_t key,
   bucket->val    = val;
 
   if (!ares__htable_insert(htable->hash, bucket)) {
-    goto fail;
+    goto fail; /* LCOV_EXCL_LINE: OutOfMemory */
   }
 
   return ARES_TRUE;
 
 fail:
   if (bucket) {
-    ares_free(bucket);
+    ares_free(bucket); /* LCOV_EXCL_LINE: OutOfMemory */
   }
   return ARES_FALSE;
 }
