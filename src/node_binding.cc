@@ -67,6 +67,7 @@
   V(serdes)                                                                    \
   V(signal_wrap)                                                               \
   V(spawn_sync)                                                                \
+  V(sqlite)                                                                    \
   V(stream_pipe)                                                               \
   V(stream_wrap)                                                               \
   V(string_decoder)                                                            \
@@ -85,6 +86,7 @@
   V(wasi)                                                                      \
   V(wasm_web_api)                                                              \
   V(watchdog)                                                                  \
+  V(webstorage)                                                                \
   V(worker)                                                                    \
   V(zlib)
 

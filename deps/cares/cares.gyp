@@ -5,7 +5,6 @@
       'include/ares_dns.h',
       'include/ares_dns_record.h',
       'include/ares_nameser.h',
-      'include/ares_rules.h',
       'include/ares_version.h',
       'src/lib/ares__addrinfo2hostent.c',
       'src/lib/ares__addrinfo_localhost.c',
@@ -21,6 +20,8 @@
       'src/lib/ares__htable_strvp.h',
       'src/lib/ares__htable_szvp.c',
       'src/lib/ares__htable_szvp.h',
+      'src/lib/ares__htable_vpvp.c',
+      'src/lib/ares__htable_vpvp.h',
       'src/lib/ares__iface_ips.c',
       'src/lib/ares__iface_ips.h',
       'src/lib/ares__llist.c',
@@ -41,11 +42,14 @@
       'src/lib/ares_data.h',
       'src/lib/ares_destroy.c',
       'src/lib/ares_dns_mapping.c',
+      'src/lib/ares_dns_multistring.c',
+      'src/lib/ares_dns_multistring.h',
       'src/lib/ares_dns_name.c',
       'src/lib/ares_dns_parse.c',
       'src/lib/ares_dns_record.c',
       'src/lib/ares_dns_private.h',
       'src/lib/ares_dns_write.c',
+      'src/lib/ares_event_configchg.c',
       'src/lib/ares_event.h',
       'src/lib/ares_event_win32.h',
       'src/lib/ares_event_epoll.c',
@@ -73,6 +77,7 @@
       'src/lib/ares_library_init.c',
       'src/lib/ares_ipv6.h',
       'src/lib/ares_math.c',
+      'src/lib/ares_metrics.c',
       'src/lib/ares_options.c',
       'src/lib/ares_parse_a_reply.c',
       'src/lib/ares_parse_aaaa_reply.c',
@@ -109,11 +114,16 @@
       'src/lib/ares_version.c',
       'src/lib/inet_net_pton.c',
       'src/lib/inet_ntop.c',
-      'src/lib/setup_once.h',
       'src/tools/ares_getopt.c',
       'src/tools/ares_getopt.h',
     ],
+    'cares_sources_mac': [
+      'config/darwin/ares_config.h',
+      'src/lib/ares_sysconfig_mac.c',
+      'src/lib/thirdparty/apple/dnsinfo.h',
+    ],
     'cares_sources_win': [
+      'src/lib/ares_sysconfig_win.c',
       'src/lib/config-win32.h',
       'src/lib/windows_port.c',
     ],
@@ -206,7 +216,9 @@
         }],
         [ 'OS=="mac" or OS=="ios"', {
           'include_dirs': [ 'config/darwin' ],
-          'sources': [ 'config/darwin/ares_config.h' ]
+          'sources': [
+            '<@(cares_sources_mac)',
+          ]
         }],
         [ 'OS=="freebsd" or OS=="dragonflybsd"', {
           'include_dirs': [ 'config/freebsd' ],

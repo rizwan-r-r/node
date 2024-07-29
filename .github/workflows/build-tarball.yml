@@ -30,6 +30,9 @@ concurrency:
 env:
   PYTHON_VERSION: '3.12'
   FLAKY_TESTS: keep_retrying
+  CC: sccache clang
+  CXX: sccache clang++
+  SCCACHE_GHA_ENABLED: 'true'
 
 permissions:
   contents: read
@@ -37,15 +40,19 @@ permissions:
 jobs:
   build-tarball:
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # v4.1.4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
         with:
           persist-credentials: false
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up sccache
+        uses: mozilla-actions/sccache-action@89e9040de88b577a072e3760aaf59f585da083af  # v0.0.5
+        with:
+          version: v0.8.0
       - name: Environment Information
         run: npx envinfo
       - name: Make tarball
@@ -63,15 +70,19 @@ jobs:
           path: tarballs
   test-tarball-linux:
     needs: build-tarball
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # v4.1.4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
         with:
           persist-credentials: false
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # v5.1.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up sccache
+        uses: mozilla-actions/sccache-action@89e9040de88b577a072e3760aaf59f585da083af  # v0.0.5
+        with:
+          version: v0.8.0
       - name: Environment Information
         run: npx envinfo
       - name: Download tarball
@@ -85,7 +96,7 @@ jobs:
           echo "TAR_DIR=$RUNNER_TEMP/`basename tarballs/*.tar.gz .tar.gz`" >> $GITHUB_ENV
       - name: Copy directories needed for testing
         run: |
-          cp -r tools/node_modules $TAR_DIR/tools
+          cp -r tools/eslint $TAR_DIR/tools
           cp -r tools/eslint-rules $TAR_DIR/tools
       - name: Build
         run: |

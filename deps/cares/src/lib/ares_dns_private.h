@@ -26,20 +26,26 @@
 #ifndef __ARES_DNS_PRIVATE_H
 #define __ARES_DNS_PRIVATE_H
 
+ares_status_t ares_dns_record_duplicate_ex(ares_dns_record_t **dest,
+                                           const ares_dns_record_t *src);
 ares_bool_t ares_dns_rec_type_allow_name_compression(ares_dns_rec_type_t type);
 ares_bool_t ares_dns_opcode_isvalid(ares_dns_opcode_t opcode);
 ares_bool_t ares_dns_rcode_isvalid(ares_dns_rcode_t rcode);
 ares_bool_t ares_dns_flags_arevalid(unsigned short flags);
 ares_bool_t ares_dns_rec_type_isvalid(ares_dns_rec_type_t type,
                                       ares_bool_t         is_query);
-ares_bool_t ares_dns_class_isvalid(ares_dns_class_t qclass,
-                                   ares_bool_t      is_query);
+ares_bool_t ares_dns_class_isvalid(ares_dns_class_t    qclass,
+                                   ares_dns_rec_type_t type,
+                                   ares_bool_t         is_query);
 ares_bool_t ares_dns_section_isvalid(ares_dns_section_t sect);
 ares_status_t ares_dns_rr_set_str_own(ares_dns_rr_t    *dns_rr,
                                       ares_dns_rr_key_t key, char *val);
 ares_status_t ares_dns_rr_set_bin_own(ares_dns_rr_t    *dns_rr,
                                       ares_dns_rr_key_t key, unsigned char *val,
                                       size_t len);
+ares_status_t ares_dns_rr_set_abin_own(ares_dns_rr_t           *dns_rr,
+                                       ares_dns_rr_key_t        key,
+                                       ares__dns_multistring_t *strs);
 ares_status_t ares_dns_rr_set_opt_own(ares_dns_rr_t    *dns_rr,
                                       ares_dns_rr_key_t key, unsigned short opt,
                                       unsigned char *val, size_t val_len);
@@ -119,9 +125,21 @@ typedef struct {
 } ares__dns_mx_t;
 
 typedef struct {
-  char  *data;
-  size_t data_len;
+  ares__dns_multistring_t *strs;
 } ares__dns_txt_t;
+
+typedef struct {
+  unsigned short type_covered;
+  unsigned char  algorithm;
+  unsigned char  labels;
+  unsigned int   original_ttl;
+  unsigned int   expiration;
+  unsigned int   inception;
+  unsigned short key_tag;
+  char          *signers_name;
+  unsigned char *signature;
+  size_t         signature_len;
+} ares__dns_sig_t;
 
 typedef struct {
   struct ares_in6_addr addr;
@@ -216,6 +234,7 @@ struct ares_dns_rr {
     ares__dns_hinfo_t  hinfo;
     ares__dns_mx_t     mx;
     ares__dns_txt_t    txt;
+    ares__dns_sig_t    sig;
     ares__dns_aaaa_t   aaaa;
     ares__dns_srv_t    srv;
     ares__dns_naptr_t  naptr;

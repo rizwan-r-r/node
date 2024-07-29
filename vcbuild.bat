@@ -142,7 +142,7 @@ if /i "%1"=="cctest"        set cctest=1&goto arg-ok
 if /i "%1"=="openssl-no-asm"   set openssl_no_asm=1&goto arg-ok
 if /i "%1"=="no-shared-roheap" set no_shared_roheap=1&goto arg-ok
 if /i "%1"=="doc"           set doc=1&goto arg-ok
-if /i "%1"=="binlog"        set extra_msbuild_args=/binaryLogger:%config%\node.binlog&goto arg-ok
+if /i "%1"=="binlog"        set extra_msbuild_args=/binaryLogger:out\%config%\node.binlog&goto arg-ok
 
 echo Error: invalid command line option `%1`.
 exit /b 1
@@ -187,8 +187,6 @@ if defined nosnapshot       set configure_flags=%configure_flags% --without-snap
 if defined nonpm            set configure_flags=%configure_flags% --without-npm
 if defined nocorepack       set configure_flags=%configure_flags% --without-corepack
 if defined ltcg             set configure_flags=%configure_flags% --with-ltcg
-:: If clang-cl build is requested, set it to 17.0, which is the version shipped with VS 2022.
-if defined clang_cl         set configure_flags=%configure_flags% --clang-cl=17.0
 if defined release_urlbase  set configure_flags=%configure_flags% --release-urlbase=%release_urlbase%
 if defined download_arg     set configure_flags=%configure_flags% %download_arg%
 if defined enable_vtune_arg set configure_flags=%configure_flags% --enable-vtune-profiling
@@ -203,7 +201,11 @@ if defined debug_nghttp2    set configure_flags=%configure_flags% --debug-nghttp
 if defined openssl_no_asm   set configure_flags=%configure_flags% --openssl-no-asm
 if defined no_shared_roheap set configure_flags=%configure_flags% --disable-shared-readonly-heap
 if defined DEBUG_HELPER     set configure_flags=%configure_flags% --verbose
-if "%target_arch%"=="x86" if "%PROCESSOR_ARCHITECTURE%"=="AMD64" set configure_flags=%configure_flags% --no-cross-compiling
+
+if "%target_arch%"=="x86" (
+  echo "32-bit Windows builds are not supported anymore."
+  exit /b 1
+)
 
 if not exist "%~dp0deps\icu" goto no-depsicu
 if "%target%"=="Clean" echo deleting %~dp0deps\icu
@@ -220,7 +222,7 @@ if "%target%"=="TestClean" (
 call tools\msvs\find_python.cmd
 if errorlevel 1 goto :exit
 
-REM NASM is only needed on IA32 and x86_64.
+REM NASM is only needed on x86_64.
 if not defined openssl_no_asm if "%target_arch%" NEQ "arm64" call tools\msvs\find_nasm.cmd
 if errorlevel 1 echo Could not find NASM, install it or build with openssl-no-asm. See BUILDING.md.
 
@@ -236,9 +238,7 @@ if defined noprojgen if defined nobuild goto :after-build
 
 @rem Set environment for msbuild
 
-set msvs_host_arch=x86
-if _%PROCESSOR_ARCHITECTURE%_==_AMD64_ set msvs_host_arch=amd64
-if _%PROCESSOR_ARCHITEW6432%_==_AMD64_ set msvs_host_arch=amd64
+set msvs_host_arch=amd64
 if _%PROCESSOR_ARCHITECTURE%_==_ARM64_ set msvs_host_arch=arm64
 @rem usually vcvarsall takes an argument: host + '_' + target
 set vcvarsall_arg=%msvs_host_arch%_%target_arch%
@@ -254,7 +254,7 @@ echo Looking for Visual Studio 2022
 @rem cleared first as vswhere_usability_wrapper.cmd doesn't when it fails to
 @rem detect the version searched for
 if not defined target_env set "VCINSTALLDIR="
-call tools\msvs\vswhere_usability_wrapper.cmd "[17.6,18.0)" %target_arch% "prerelease"
+call tools\msvs\vswhere_usability_wrapper.cmd "[17.6,18.0)" %target_arch% "prerelease" %clang_cl%
 if "_%VCINSTALLDIR%_" == "__" goto msbuild-not-found
 @rem check if VS2022 is already setup, and for the requested arch
 if "_%VisualStudioVersion%_" == "_17.0_" if "_%VSCMD_ARG_TGT_ARCH%_"=="_%target_arch%_" goto found_vs2022
@@ -274,12 +274,41 @@ set PLATFORM_TOOLSET=v143
 goto msbuild-found
 
 :msbuild-not-found
-echo Failed to find a suitable Visual Studio installation.
+set "clang_echo="
+if defined clang_cl set "clang_echo= or Clang compiler/LLVM toolset"
+echo Failed to find a suitable Visual Studio installation%clang_echo%.
 echo Try to run in a "Developer Command Prompt" or consult
 echo https://github.com/nodejs/node/blob/HEAD/BUILDING.md#windows
 goto exit
 
 :msbuild-found
+
+@rem Visual Studio v17.10 has a bug that causes the build to fail.
+@rem Check if the version is v17.10 and exit if it is.
+echo %VSCMD_VER% | findstr /b /c:"17.10" >nul
+if %errorlevel% neq 1  (
+  echo Node.js doesn't compile with Visual Studio 17.10 Please use a different version.
+  goto exit
+)
+
+@rem check if the clang-cl build is requested
+if not defined clang_cl goto clang-skip
+@rem x64 is hard coded as it is used for both cross and native compilation.
+set "clang_path=%VCINSTALLDIR%\Tools\Llvm\x64\bin\clang.exe"
+for /F "tokens=3" %%i in ('"%clang_path%" --version') do (
+    set clang_version=%%i
+    goto clang-found
+)
+
+:clang-not-found
+echo Failed to find Clang compiler in %clang_path%.
+goto exit
+
+:clang-found
+echo Found Clang version %clang_version%
+set configure_flags=%configure_flags% --clang-cl=%clang_version%
+
+:clang-skip
 
 set project_generated=
 :project-gen
@@ -319,8 +348,7 @@ if defined nobuild goto :after-build
 @rem Build the sln with msbuild.
 set "msbcpu=/m:2"
 if "%NUMBER_OF_PROCESSORS%"=="1" set "msbcpu=/m:1"
-set "msbplatform=Win32"
-if "%target_arch%"=="x64" set "msbplatform=x64"
+set "msbplatform=x64"
 if "%target_arch%"=="arm64" set "msbplatform=ARM64"
 if "%target%"=="Build" (
   if defined no_cctest set target=node
@@ -703,9 +731,9 @@ goto lint-js
 
 :lint-js
 if not defined lint_js goto lint-md-build
-if not exist tools\node_modules\eslint goto no-lint
+if not exist tools\eslint\node_modules\eslint goto no-lint
 echo running lint-js
-%node_exe% tools\node_modules\eslint\bin\eslint.js --cache --max-warnings=0 --report-unused-disable-directives --rule "@stylistic/js/linebreak-style: 0" eslint.config.mjs benchmark doc lib test tools
+%node_exe% tools\eslint\node_modules\eslint\bin\eslint.js --cache --max-warnings=0 --report-unused-disable-directives --rule "@stylistic/js/linebreak-style: 0" eslint.config.mjs benchmark doc lib test tools
 goto lint-md-build
 
 :no-lint
@@ -753,7 +781,7 @@ set exit_code=1
 goto exit
 
 :help
-echo vcbuild.bat [debug/release] [msi] [doc] [test/test-all/test-addons/test-doc/test-js-native-api/test-node-api/test-internet/test-tick-processor/test-known-issues/test-node-inspect/test-check-deopts/test-npm/test-v8/test-v8-intl/test-v8-benchmarks/test-v8-all] [ignore-flaky] [static/dll] [noprojgen] [projgen] [clang-cl] [small-icu/full-icu/without-intl] [nobuild] [nosnapshot] [nonpm] [nocorepack] [ltcg] [licensetf] [sign] [ia32/x86/x64/arm64] [vs2022] [download-all] [enable-vtune] [lint/lint-ci/lint-js/lint-md] [lint-md-build] [format-md] [package] [build-release] [upload] [no-NODE-OPTIONS] [link-module path-to-module] [debug-http2] [debug-nghttp2] [clean] [cctest] [no-cctest] [openssl-no-asm]
+echo vcbuild.bat [debug/release] [msi] [doc] [test/test-all/test-addons/test-doc/test-js-native-api/test-node-api/test-internet/test-tick-processor/test-known-issues/test-node-inspect/test-check-deopts/test-npm/test-v8/test-v8-intl/test-v8-benchmarks/test-v8-all] [ignore-flaky] [static/dll] [noprojgen] [projgen] [clang-cl] [small-icu/full-icu/without-intl] [nobuild] [nosnapshot] [nonpm] [nocorepack] [ltcg] [licensetf] [sign] [x64/arm64] [vs2022] [download-all] [enable-vtune] [lint/lint-ci/lint-js/lint-md] [lint-md-build] [format-md] [package] [build-release] [upload] [no-NODE-OPTIONS] [link-module path-to-module] [debug-http2] [debug-nghttp2] [clean] [cctest] [no-cctest] [openssl-no-asm]
 echo Examples:
 echo   vcbuild.bat                          : builds release build
 echo   vcbuild.bat debug                    : builds debug build

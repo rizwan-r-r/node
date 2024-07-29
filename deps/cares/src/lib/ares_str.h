@@ -27,9 +27,6 @@
 #ifndef __ARES_STR_H
 #define __ARES_STR_H
 
-#include "ares_setup.h"
-#include "ares.h"
-
 char         *ares_strdup(const char *s1);
 
 size_t        ares_strlen(const char *str);
@@ -61,6 +58,19 @@ ares_bool_t   ares__isprint(int ch);
 ares_bool_t   ares__is_hostnamech(int ch);
 
 ares_bool_t   ares__is_hostname(const char *str);
+
+/*! Validate the string provided is printable.  The length specified must be
+ *  at least the size of the buffer provided.  If a NULL-terminator is hit
+ *  before the length provided is hit, this will not be considered a valid
+ *  printable string.  This does not validate that the string is actually
+ *  NULL terminated.
+ *
+ *  \param[in] str  Buffer containing string to evaluate.
+ *  \param[in] len  Number of characters to evaluate within provided buffer.
+ *                  If 0, will return TRUE since it did not hit an exception.
+ *  \return ARES_TRUE if the entire string is printable, ARES_FALSE if not.
+ */
+ares_bool_t   ares__str_isprint(const char *str, size_t len);
 
 
 #endif /* __ARES_STR_H */

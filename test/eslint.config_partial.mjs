@@ -2,9 +2,8 @@
 
 import {
   noRestrictedSyntaxCommonAll,
-  noRestrictedSyntaxCommonTest,
   requireEslintTool,
-} from '../tools/eslint.config_utils.mjs';
+} from '../tools/eslint/eslint.config_utils.mjs';
 
 const globals = requireEslintTool('globals');
 
@@ -14,6 +13,7 @@ export default [
     languageOptions: {
       globals: {
         ...globals.node,
+        CloseEvent: true,
       },
     },
     rules: {
@@ -26,7 +26,6 @@ export default [
       'no-restricted-syntax': [
         'error',
         ...noRestrictedSyntaxCommonAll,
-        ...noRestrictedSyntaxCommonTest,
         {
           selector: "CallExpression:matches([callee.name='deepStrictEqual'], [callee.property.name='deepStrictEqual']):matches([arguments.1.type='Literal']:not([arguments.1.regex]), [arguments.1.type='Identifier'][arguments.1.name='undefined'])",
           message: 'Use strictEqual instead of deepStrictEqual for literals or undefined.',
